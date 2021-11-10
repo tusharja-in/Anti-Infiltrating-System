@@ -16,7 +16,6 @@
 #include <fstream>
 #include <sstream>
 
-//header files that contain functions
 #include "FaceRec.h"
 
 
