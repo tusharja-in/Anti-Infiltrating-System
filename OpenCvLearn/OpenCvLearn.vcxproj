@@ -37,9 +37,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FaceRec.h" />
+    <ClInclude Include="SerialPort.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="SerialPort.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="models\eigenface.yml" />
@@ -143,7 +145,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>

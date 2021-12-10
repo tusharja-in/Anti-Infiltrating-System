@@ -1,5 +1,9 @@
-﻿#include <iostream>
+﻿#define NOMINMAX
+#include <iostream>
 #include <string>
+#include "SerialPort.h"
+#include <ctime>
+
 
 //include opencv core
 #include "opencv2\core\core.hpp"
@@ -17,6 +21,12 @@
 using namespace std;
 using namespace cv;
 using namespace cv::face;
+
+
+char port[] = "\\\\.\\COM4";      // port to which arduino is connected
+
+char output[MAX_DATA_LENGTH];
+char incomingData[MAX_DATA_LENGTH];
 
 CascadeClassifier face_cascade;
 string filename;
@@ -94,7 +104,7 @@ void detectAndDisplay(Mat frame)
 
 void addFace()
 {
-	cout << "\nEnter Your Name:  ";
+	cout << "\nEnter Your Code Name:  ";
 	cin >> name;
 	//VideoCapture capture(0);
 	VideoCapture capture(0);
@@ -162,6 +172,20 @@ static void dbread(vector<Mat>& images, vector<int>& labels) {
 	}
 }
 
+int write_csv(string name, string door)
+{
+	fstream fout;
+	fout.open("Resources/FaceSaved.csv", ios::out | ios::app);
+	time_t now = time(0);
+	char* date = ctime(&now);
+
+	// Insert the data to file
+	fout << name << ", "
+		<< door << ", "
+		<< date;
+	return 0;
+}
+
 void eigenFaceTrainer() {
 	vector<Mat> images;
 	vector<int> labels;
@@ -183,6 +207,13 @@ void eigenFaceTrainer() {
 }
 
 void  FaceRecognition() {
+	SerialPort arduino(port);
+	if (arduino.isConnected()) {
+		cout << "Connection made" << endl << endl;
+	}
+	else {
+		cout << "Error in port name" << endl << endl;
+	}
 
 	cout << "start recognizing..." << endl;
 
@@ -271,7 +302,7 @@ void  FaceRecognition() {
 				double confidence = 0;
 				model -> predict(face_resized, label, confidence);
 
-				cout << " confidence " << confidence << " Label: " << label << endl;
+				cout << " confidence " << confidence  << endl;
 
 				Pname = to_string(label);
 
@@ -279,20 +310,52 @@ void  FaceRecognition() {
 				rectangle(original, face_i, CV_RGB(0, 255, 0), 1);
 				string text = Pname;
 
-				if (text == "4") {
-					text = "Tushar";
-				}
-				int pos_x = std::max(face_i.tl().x - 10, 0);
-				int pos_y = std::max(face_i.tl().y - 10, 0);
+				//if (text == "4") {
+				//	text = "Tushar";
+				//}
+				int pos_x = (std::max)(face_i.tl().x - 10, 0);
+				int pos_y = (std::max)(face_i.tl().y - 10, 0);
 
 				//name the person who is in the image
 				putText(original, text, Point(pos_x, pos_y), FONT_HERSHEY_COMPLEX_SMALL, 1.0, CV_RGB(0, 255, 0), 1.0);
 				//cv::imwrite("E:/FDB/"+frameset+".jpg", cropImg);
+				if (text != "0" && confidence<=5500) {
+					cout << "Enter your command: (LEFT/RIGHT) " << endl;
+					string data;
+					cin >> data;
+
+					char* charArray = new char[data.size() + 1];
+					copy(data.begin(), data.end(), charArray);
+					charArray[data.size()] = '\n';
+
+					arduino.writeSerialPort(charArray, MAX_DATA_LENGTH);
+					//arduino.readSerialPort(output, MAX_DATA_LENGTH);
+
+					//cout << ">> " << output << endl;
+					write_csv(text, data);
+					waitKey(5000);
+					delete[] charArray;
+				
+				}
+				else {
+					string alert = "ALERT";
+
+					char* charArray = new char[alert.size() + 1];
+					copy(alert.begin(), alert.end(), charArray);
+					charArray[alert.size()] = '\n';
+
+					arduino.writeSerialPort(charArray, MAX_DATA_LENGTH);
+					arduino.readSerialPort(output, MAX_DATA_LENGTH);
+
+					cout << ">> " << output << endl;
+					waitKey(5000);
+					delete[] charArray;
+				}
 
 			}
 
-			putText(original, "Frames: " + frameset, Point(30, 60), FONT_HERSHEY_COMPLEX_SMALL, 1.0, CV_RGB(0, 255, 0), 1.0);
-			putText(original, "No. of Persons detected: " + to_string(faces.size()), Point(30, 90), FONT_HERSHEY_COMPLEX_SMALL, 1.0, CV_RGB(0, 255, 0), 1.0);
+			//putText(original, "Frames: " + frameset, Point(30, 60), FONT_HERSHEY_COMPLEX_SMALL, 1.0, CV_RGB(0, 255, 0), 1.0);
+			//putText(original, "No. of Persons detected: " + to_string(faces.size()), Point(30, 90), FONT_HERSHEY_COMPLEX_SMALL, 1.0, CV_RGB(0, 255, 0), 1.0);
 			//display to the winodw
 			cv::imshow(window, original);
 

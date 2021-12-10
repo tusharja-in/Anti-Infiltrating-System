@@ -25,22 +25,43 @@ using namespace cv::face;
 
 int main()
 {
+	string line;
+	ifstream fin;
 	int choice;
-	cout << "1. Recognise Face\n";
-	cout << "2. Add Face\n";
-	cout << "Choose One: ";
-	cin >> choice;
-	switch (choice)
+	int loop = 1;
+	
+	while (loop == 1)
 	{
-	case 1:
-		FaceRecognition();
-		break;
-	case 2:
-		addFace();
-		eigenFaceTrainer();
-		break;
-	default:
-		return 0;
+		cout << "1. Security mode\n";
+		cout << "2. Add Face\n";
+		cout << "3. See previous details\n";
+		cout << "4. Exit\n";
+		cout << "Choose One: ";
+		cin >> choice;
+		switch (choice)
+		{
+		case 1:
+			FaceRecognition();
+			break;
+		case 2:
+			addFace();
+			eigenFaceTrainer();
+			break;
+		case 3:
+
+			fin.open("Resources/FaceSaved.csv");
+			while (fin) {
+				getline(fin, line);
+				cout << line << endl;
+			}
+			fin.close();
+			break;
+		case 4:
+			loop = 0;
+			break;
+		default:
+			cout<<"please enter valid option\n";
+		}
 	}
 	return 0;
 }
